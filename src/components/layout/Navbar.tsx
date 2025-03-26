@@ -3,17 +3,18 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MenuIcon, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Features", href: "/features" },
     { name: "Pricing", href: "/pricing" },
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Flow Designer", href: "/flow-designer" },
+    ...(user ? [{ name: "Dashboard", href: "/dashboard" }] : []),
   ];
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -45,12 +46,20 @@ const Navbar = () => {
           </nav>
           
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/signup">Get Started</Link>
-            </Button>
+            {user ? (
+              <Button asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/auth/login">Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/auth/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
           
           <div className="md:hidden flex items-center">
@@ -88,12 +97,20 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-4 flex flex-col space-y-2">
-              <Button variant="outline" asChild className="w-full">
-                <Link to="/login">Login</Link>
-              </Button>
-              <Button asChild className="w-full">
-                <Link to="/signup">Get Started</Link>
-              </Button>
+              {user ? (
+                <Button asChild className="w-full">
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" asChild className="w-full">
+                    <Link to="/auth/login">Login</Link>
+                  </Button>
+                  <Button asChild className="w-full">
+                    <Link to="/auth/signup">Get Started</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,21 +1,5 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  Cell,
-} from 'recharts';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -24,56 +8,60 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  ChartContainer,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Link } from 'react-router-dom';
 import { 
   PlusCircle, 
   User, 
   Phone, 
   Home, 
-  BarChart as BarChartIcon
+  BarChart as BarChartIcon,
+  FileText,
+  CheckSquare,
+  Calendar
 } from 'lucide-react';
+import SecureDashboardLayout from '@/components/layout/SecureDashboardLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-// Sample data
-const campaignData = [
-  { name: 'Jan', directMail: 65, email: 40, sms: 24 },
-  { name: 'Feb', directMail: 59, email: 38, sms: 28 },
-  { name: 'Mar', directMail: 80, email: 52, sms: 35 },
-  { name: 'Apr', directMail: 81, email: 56, sms: 30 },
-  { name: 'May', directMail: 56, email: 38, sms: 25 },
-  { name: 'Jun', directMail: 55, email: 45, sms: 32 },
-  { name: 'Jul', directMail: 72, email: 53, sms: 38 },
-];
-
-const leadSourceData = [
-  { name: 'Direct Mail', value: 400 },
-  { name: 'Email', value: 300 },
-  { name: 'SMS', value: 200 },
-  { name: 'Cold Call', value: 150 },
-  { name: 'Website', value: 250 },
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-const flowData = [
-  { name: 'New Lead Welcome', leads: 245, conversion: 35 },
-  { name: 'Follow-up Sequence', leads: 188, conversion: 42 },
-  { name: 'Property Alert', leads: 167, conversion: 28 },
-  { name: 'Re-engagement', leads: 124, conversion: 18 },
-];
+// Sample data components kept from the original Dashboard
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('user_id', user.id)
+          .limit(5);
+        
+        if (error) throw error;
+        
+        setTasks(data || []);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [user]);
+
   return (
-    <DashboardLayout>
+    <SecureDashboardLayout>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold">Dashboard</h2>
         <Button asChild>
-          <Link to="/flow-designer">
+          <Link to="/dashboard/records/new">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Create New Flow
+            Add New Record
           </Link>
         </Button>
       </div>
@@ -130,105 +118,106 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Campaign Performance</CardTitle>
-            <CardDescription>
-              Monthly performance across different campaign types
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={campaignData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="directMail" name="Direct Mail" fill="#0088FE" />
-                  <Bar dataKey="email" name="Email" fill="#00C49F" />
-                  <Bar dataKey="sms" name="SMS" fill="#FFBB28" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Lead Sources</CardTitle>
-            <CardDescription>
-              Distribution of leads by acquisition channel
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={leadSourceData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {leadSourceData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Flow Performance */}
+      {/* Recent Tasks */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Flow Performance</CardTitle>
+          <CardTitle>Recent Tasks</CardTitle>
           <CardDescription>
-            Performance metrics for your top flows
+            Your latest assigned tasks and activities
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="p-3 text-left font-medium">Flow Name</th>
-                  <th className="p-3 text-center font-medium">Leads Processed</th>
-                  <th className="p-3 text-center font-medium">Conversion Rate</th>
-                  <th className="p-3 text-center font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {flowData.map((flow, index) => (
-                  <tr key={index} className="border-t border-border">
-                    <td className="p-3">{flow.name}</td>
-                    <td className="p-3 text-center">{flow.leads}</td>
-                    <td className="p-3 text-center">{flow.conversion}%</td>
-                    <td className="p-3 text-center">
-                      <Button variant="outline" size="sm">
-                        <Link to="/flow-designer">Edit</Link>
-                      </Button>
-                    </td>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-4">
+              <p>Loading tasks...</p>
+            </div>
+          ) : tasks.length > 0 ? (
+            <div className="rounded-md border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="p-3 text-left font-medium">Task</th>
+                    <th className="p-3 text-center font-medium">Due Date</th>
+                    <th className="p-3 text-center font-medium">Status</th>
+                    <th className="p-3 text-center font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {tasks.map((task: any) => (
+                    <tr key={task.id} className="border-t border-border">
+                      <td className="p-3">{task.title}</td>
+                      <td className="p-3 text-center">{new Date(task.due_date).toLocaleDateString()}</td>
+                      <td className="p-3 text-center">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          task.status === 'completed' 
+                            ? 'bg-green-100 text-green-800' 
+                            : task.status === 'in_progress' 
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {task.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/dashboard/tasks/${task.id}`}>View</Link>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center p-4">
+              <p className="text-muted-foreground mb-4">No tasks found</p>
+              <Button variant="outline" asChild>
+                <Link to="/dashboard/tasks/new">
+                  <CheckSquare className="mr-2 h-4 w-4" />
+                  Create a Task
+                </Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Upcoming Activities */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upcoming Activities</CardTitle>
+          <CardDescription>Your scheduled activities and events</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center gap-4 rounded-md border p-3">
+              <Calendar className="h-10 w-10 text-primary" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium">Team Meeting</h4>
+                <p className="text-xs text-muted-foreground">Tomorrow at 10:00 AM</p>
+              </div>
+              <Button variant="outline" size="sm">View</Button>
+            </div>
+            <div className="flex items-center gap-4 rounded-md border p-3">
+              <FileText className="h-10 w-10 text-primary" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium">Property Inspection</h4>
+                <p className="text-xs text-muted-foreground">Thursday at 2:00 PM</p>
+              </div>
+              <Button variant="outline" size="sm">View</Button>
+            </div>
+            <div className="flex items-center gap-4 rounded-md border p-3">
+              <Phone className="h-10 w-10 text-primary" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium">Client Call</h4>
+                <p className="text-xs text-muted-foreground">Friday at 11:30 AM</p>
+              </div>
+              <Button variant="outline" size="sm">View</Button>
+            </div>
           </div>
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </SecureDashboardLayout>
   );
 };
 

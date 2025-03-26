@@ -4,6 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+
+// Pages
 import Index from "./pages/Index";
 import Features from "./pages/Features";
 import PricingPage from "./pages/PricingPage";
@@ -14,6 +18,10 @@ import Analytics from "./pages/Analytics";
 import LeadManagement from "./pages/LeadManagement";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
+import Records from "./pages/dashboard/Records";
+import Profile from "./pages/dashboard/Profile";
 
 const queryClient = new QueryClient();
 
@@ -23,18 +31,29 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/flow-designer" element={<FlowDesigner />} />
-          <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/leads" element={<LeadManagement />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/signup" element={<Signup />} />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/records" element={<ProtectedRoute><Records /></ProtectedRoute>} />
+            <Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/flow-designer" element={<ProtectedRoute><FlowDesigner /></ProtectedRoute>} />
+            <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/leads" element={<ProtectedRoute><LeadManagement /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            
+            {/* 404 route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
