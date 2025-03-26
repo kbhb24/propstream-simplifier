@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  FileFlow, 
+  GitBranch, 
   BarChart, 
   Users, 
   Mail, 
@@ -40,7 +40,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     {
       name: 'Flow Designer',
       href: '/flow-designer',
-      icon: <FileFlow className="h-5 w-5" />,
+      icon: <GitBranch className="h-5 w-5" />,
     },
     {
       name: 'Campaigns',

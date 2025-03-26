@@ -1,323 +1,215 @@
-
 import React, { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Node,
-  Edge,
-  Connection,
-  MarkerType,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/components/ui/use-toast';
-import { 
-  Save, 
-  Plus, 
-  Mail, 
-  Phone,
-  MessageSquare, 
-  Database,
-  Settings, 
-  Shuffle, 
-  Users
-} from 'lucide-react';
+import { ReactFlow, Background, Controls, Panel, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
-// Custom Node Types
-const nodeTypes = {
-  triggerNode: TriggerNode,
-  actionNode: ActionNode,
-  conditionNode: ConditionNode,
-};
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown, Plus, Save, Share, Trash, Edit } from 'lucide-react';
 
-function TriggerNode({ data }) {
-  return (
-    <Card className="min-w-[200px] border-2 border-blue-500">
-      <CardHeader className="p-3 bg-blue-50 dark:bg-blue-950">
-        <CardTitle className="text-sm flex items-center gap-2">
-          {data.icon}
-          {data.label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 text-xs">
-        {data.description}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ActionNode({ data }) {
-  return (
-    <Card className="min-w-[200px] border-2 border-green-500">
-      <CardHeader className="p-3 bg-green-50 dark:bg-green-950">
-        <CardTitle className="text-sm flex items-center gap-2">
-          {data.icon}
-          {data.label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 text-xs">
-        {data.description}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ConditionNode({ data }) {
-  return (
-    <Card className="min-w-[200px] border-2 border-amber-500">
-      <CardHeader className="p-3 bg-amber-50 dark:bg-amber-950">
-        <CardTitle className="text-sm flex items-center gap-2">
-          {data.icon}
-          {data.label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 text-xs">
-        {data.description}
-      </CardContent>
-    </Card>
-  );
-}
-
-// Initial nodes
-const initialNodes: Node[] = [
+// Initial nodes and edges for the flow
+const initialNodes = [
   {
     id: '1',
-    type: 'triggerNode',
-    position: { x: 250, y: 100 },
-    data: { 
-      label: 'New Lead Trigger', 
-      description: 'Activates when a new lead is added to the system',
-      icon: <Database className="h-4 w-4" /> 
-    },
+    type: 'input',
+    data: { label: 'Start' },
+    position: { x: 250, y: 5 },
+  },
+  {
+    id: '2',
+    data: { label: 'Email Campaign' },
+    position: { x: 100, y: 100 },
+  },
+  {
+    id: '3',
+    data: { label: 'SMS Follow-up' },
+    position: { x: 400, y: 100 },
+  },
+  {
+    id: '4',
+    type: 'output',
+    data: { label: 'Lead Conversion' },
+    position: { x: 250, y: 200 },
   },
 ];
 
-// Initial edges
-const initialEdges: Edge[] = [];
+const initialEdges = [
+  { id: 'e1-2', source: '1', target: '2' },
+  { id: 'e1-3', source: '1', target: '3' },
+  { id: 'e2-4', source: '2', target: '4' },
+  { id: 'e3-4', source: '3', target: '4' },
+];
 
 const FlowDesigner = () => {
+  // Use the React Flow hooks to manage nodes and edges
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [flowName, setFlowName] = useState('New Flow');
-  const [activeTab, setActiveTab] = useState('triggers');
-  const navigate = useNavigate();
+  const [flowName, setFlowName] = useState('New Marketing Flow');
 
-  const onConnect = useCallback(
-    (params: Connection) => {
-      setEdges((eds) => addEdge({
-        ...params,
-        markerEnd: { type: MarkerType.ArrowClosed },
-        animated: true,
-      }, eds))
-    },
-    [setEdges],
-  );
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
-  const handleAddNode = (type: string, label: string, description: string, icon: JSX.Element) => {
-    const newNode: Node = {
-      id: (nodes.length + 1).toString(),
-      type: type,
-      position: {
-        x: Math.random() * 300 + 200,
-        y: Math.random() * 300 + 100,
-      },
-      data: { label, description, icon },
-    };
-    setNodes((nds) => [...nds, newNode]);
+  const handleSave = () => {
+    alert('Flow saved!');
   };
 
-  const handleSaveFlow = () => {
-    toast({
-      title: "Flow saved",
-      description: `"${flowName}" has been saved successfully.`,
-    });
+  const handleShare = () => {
+    alert('Flow shared!');
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this flow?')) {
+      alert('Flow deleted!');
+    }
   };
 
   return (
-    <div className="flex h-screen flex-col">
-      {/* Top Bar */}
-      <div className="border-b border-border p-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/dashboard')}
-          >
-            Back to Dashboard
-          </Button>
-          <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center gap-2">
-            <Input
-              value={flowName}
-              onChange={(e) => setFlowName(e.target.value)}
-              className="h-9 w-60"
-            />
-          </div>
+    <DashboardLayout>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-3xl font-bold">{flowName}</h2>
+          <p className="text-muted-foreground">Design and automate your marketing workflows</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleSaveFlow}>
-            <Save className="h-4 w-4 mr-2" />
+        <div className="space-x-2">
+          <Button variant="outline">
+            <Share className="mr-2 h-4 w-4" />
+            Share
+          </Button>
+          <Button>
+            <Save className="mr-2 h-4 w-4" />
             Save Flow
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - Node Palette */}
-        <div className="w-72 border-r border-border overflow-y-auto p-4">
-          <h2 className="text-lg font-semibold mb-4">Flow Elements</h2>
-          
-          <Tabs defaultValue="triggers" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full mb-4">
-              <TabsTrigger value="triggers" className="flex-1">Triggers</TabsTrigger>
-              <TabsTrigger value="actions" className="flex-1">Actions</TabsTrigger>
-              <TabsTrigger value="conditions" className="flex-1">Conditions</TabsTrigger>
+      <Card className="mb-8">
+        <CardHeader className="pb-3">
+          <CardTitle>Flow Configuration</CardTitle>
+          <CardDescription>Customize your flow with these settings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Input
+                placeholder="Flow Name"
+                value={flowName}
+                onChange={(e) => setFlowName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Flow Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="support">Support</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Button variant="outline" className="w-full">
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Details
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className="flex h-[calc(100vh-13rem)] bg-card border rounded-lg shadow-sm">
+        <div className="w-64 border-r">
+          <Tabs defaultValue="nodes" className="flex h-full flex-col">
+            <TabsList className="shrink-0 border-b p-4">
+              <TabsTrigger value="nodes" className="text-sm">Nodes</TabsTrigger>
+              <TabsTrigger value="edges" className="text-sm">Edges</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="triggers" className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('triggerNode', 'Email Received', 'Triggers when a specific email is received', <Mail className="h-4 w-4" />)}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Email Received
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('triggerNode', 'SMS Received', 'Triggers when an SMS message is received', <MessageSquare className="h-4 w-4" />)}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                SMS Received
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('triggerNode', 'Property Listed', 'Triggers when a new property is listed', <Database className="h-4 w-4" />)}
-              >
-                <Database className="h-4 w-4 mr-2" />
-                Property Listed
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('triggerNode', 'Lead Score Changed', 'Triggers when a lead score changes', <Users className="h-4 w-4" />)}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Lead Score Changed
-              </Button>
+            <TabsContent value="nodes" className="grow p-4">
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Available Nodes</h4>
+                <Separator />
+                <Button variant="ghost" className="w-full justify-start">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Input Node
+                </Button>
+                <Button variant="ghost" className="w-full justify-start">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Email Node
+                </Button>
+                <Button variant="ghost" className="w-full justify-start">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add SMS Node
+                </Button>
+                <Button variant="ghost" className="w-full justify-start">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Delay Node
+                </Button>
+                <Button variant="ghost" className="w-full justify-start">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Condition Node
+                </Button>
+              </div>
             </TabsContent>
-            
-            <TabsContent value="actions" className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('actionNode', 'Send Email', 'Sends an email to the contact', <Mail className="h-4 w-4" />)}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Send Email
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('actionNode', 'Send SMS', 'Sends an SMS to the contact', <MessageSquare className="h-4 w-4" />)}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Send SMS
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('actionNode', 'Make Phone Call', 'Initiates an automated phone call', <Phone className="h-4 w-4" />)}
-              >
-                <Phone className="h-4 w-4 mr-2" />
-                Make Phone Call
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('actionNode', 'Update Lead Data', 'Updates information about the lead', <Database className="h-4 w-4" />)}
-              >
-                <Database className="h-4 w-4 mr-2" />
-                Update Lead Data
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('actionNode', 'Archive Lead', 'Archives the lead from active status', <Database className="h-4 w-4" />)}
-              >
-                <Database className="h-4 w-4 mr-2" />
-                Archive Lead
-              </Button>
-            </TabsContent>
-            
-            <TabsContent value="conditions" className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('conditionNode', 'Lead Score Check', 'Branches flow based on lead score', <Shuffle className="h-4 w-4" />)}
-              >
-                <Shuffle className="h-4 w-4 mr-2" />
-                Lead Score Check
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('conditionNode', 'Property Type Check', 'Branches flow based on property type', <Shuffle className="h-4 w-4" />)}
-              >
-                <Shuffle className="h-4 w-4 mr-2" />
-                Property Type Check
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('conditionNode', 'Time Delay', 'Waits for a specified time period', <Settings className="h-4 w-4" />)}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Time Delay
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => handleAddNode('conditionNode', 'Email Opened Check', 'Branches based on if email was opened', <Mail className="h-4 w-4" />)}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Email Opened Check
-              </Button>
+            <TabsContent value="edges" className="grow p-4">
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Available Edges</h4>
+                <Separator />
+                <p className="text-sm text-muted-foreground">Drag and drop to connect nodes</p>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
         
-        {/* Main Flow Designer Area */}
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            nodeTypes={nodeTypes}
             fitView
           >
             <Background />
             <Controls />
-            <MiniMap />
+            <Panel position="top-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Options <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Share className="mr-2 h-4 w-4" />
+                    Share
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
+                    <Trash className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Panel>
           </ReactFlow>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
