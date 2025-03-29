@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,17 +16,12 @@ export default function RecordDetailsPage() {
   useEffect(() => {
     async function fetchRecord() {
       try {
+        // Use a simpler query structure that's more reliable
         const { data, error } = await supabase
           .from('records')
-          .select(`
-            *,
-            properties:property_street,
-            property_city,
-            property_state,
-            property_zip
-          `)
+          .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no record is found
 
         if (error) throw error;
 
@@ -38,6 +34,8 @@ export default function RecordDetailsPage() {
           navigate('/dashboard');
           return;
         }
+
+        console.log('Fetched record:', data);
 
         // Transform the data to match the RecordDetails component props
         const transformedRecord = {
@@ -53,7 +51,7 @@ export default function RecordDetailsPage() {
           calls_made: data.contact_attempts || 0,
           verified_numbers_percentage: 0,
           total_investment: 0,
-          phone_numbers: data.phone_numbers || [],
+          phone_numbers: Array.isArray(data.phone_numbers) ? data.phone_numbers : [],
           emails: [], // We'll need to add this to the schema
           properties: [{
             id: data.id,
@@ -110,4 +108,4 @@ export default function RecordDetailsPage() {
   }
 
   return <RecordDetails record={record} />;
-} 
+}
