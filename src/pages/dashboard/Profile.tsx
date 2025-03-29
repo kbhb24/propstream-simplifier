@@ -60,13 +60,22 @@ const Profile = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-        })
-        .eq('id', user.id);
+      const isMockMode = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+      let response;
+      
+      if (isMockMode) {
+        response = { error: null };
+      } else {
+        response = await supabase
+          .from('profiles')
+          .update({
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+          })
+          .eq('id', user.id);
+      }
+      
+      const { error } = response;
       
       if (error) throw error;
       

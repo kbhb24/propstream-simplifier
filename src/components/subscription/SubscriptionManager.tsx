@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -124,12 +125,15 @@ export const SubscriptionManager: React.FC = () => {
             <div>
               <h4 className="text-sm font-medium">Features</h4>
               <ul className="mt-2 space-y-1">
-                {plan?.features.map((feature, index) => (
-                  <li key={index} className="flex items-center text-sm">
-                    <span className="mr-2">✓</span>
-                    {feature}
-                  </li>
-                ))}
+                {plan?.features && typeof plan.features === 'object' && Array.isArray(plan.features) 
+                  ? plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-center text-sm">
+                      <span className="mr-2">✓</span>
+                      {feature}
+                    </li>
+                  ))
+                  : null
+                }
               </ul>
             </div>
             <div className="flex space-x-4">
@@ -165,4 +169,4 @@ export const SubscriptionManager: React.FC = () => {
       </Card>
     </div>
   );
-}; 
+};

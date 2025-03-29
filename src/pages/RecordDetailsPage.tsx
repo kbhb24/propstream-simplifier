@@ -24,7 +24,7 @@ export default function RecordDetailsPage() {
           .from('records')
           .select('*')
           .eq('id', id)
-          .maybeSingle();
+          .single();
 
         if (error) throw error;
 

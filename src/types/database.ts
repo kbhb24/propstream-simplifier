@@ -1,4 +1,3 @@
-
 // Types for Supabase database schema
 export type Json =
   | string
@@ -85,11 +84,7 @@ export interface Database {
           mailing_city: string | null
           mailing_state: string | null
           mailing_zip: string | null
-          phone_numbers: {
-            number: string
-            type: 'Unknown' | 'Landline' | 'Mobile' | 'VoIP'
-            tags: string[]
-          }[]
+          phone_numbers: Json | null
           
           // Additional info
           info: {
@@ -123,13 +118,7 @@ export interface Database {
           tags: string[]
           
           // Tasks
-          tasks: {
-            id: string
-            title: string
-            status: string
-            assigned_to: string | null
-            created_at: string
-          }[]
+          tasks: Json | null
           
           // Marketing
           marketing_status: string | null
@@ -144,11 +133,7 @@ export interface Database {
           assignee_id: string | null
           
           // Notes
-          notes: {
-            text: string
-            created_at: string
-            updated_at: string
-          }[]
+          notes: Json | null
           
           // Metadata
           created_at: string
@@ -174,18 +159,10 @@ export interface Database {
           mailing_city?: string | null
           mailing_state?: string | null
           mailing_zip?: string | null
-          phone_numbers?: {
-            number: string
-            type: 'Unknown' | 'Landline' | 'Mobile' | 'VoIP'
-            tags: string[]
-          }[]
+          phone_numbers?: Json | null
           
           // Additional info
-          info?: {
-            hasEmail: boolean
-            hasPhone: boolean
-            [key: string]: any
-          } | null
+          info?: Json | null
           
           // Property Information
           property_street: string
@@ -212,13 +189,7 @@ export interface Database {
           tags?: string[]
           
           // Tasks
-          tasks?: {
-            id: string
-            title: string
-            status: string
-            assigned_to: string | null
-            created_at: string
-          }[]
+          tasks?: Json | null
           
           // Marketing
           marketing_status?: string | null
@@ -233,11 +204,7 @@ export interface Database {
           assignee_id?: string | null
           
           // Notes
-          notes?: {
-            text: string
-            created_at: string
-            updated_at: string
-          }[]
+          notes?: Json | null
           
           // Metadata
           created_at?: string
@@ -263,18 +230,10 @@ export interface Database {
           mailing_city?: string | null
           mailing_state?: string | null
           mailing_zip?: string | null
-          phone_numbers?: {
-            number: string
-            type: 'Unknown' | 'Landline' | 'Mobile' | 'VoIP'
-            tags: string[]
-          }[]
+          phone_numbers?: Json | null
           
           // Additional info
-          info?: {
-            hasEmail: boolean
-            hasPhone: boolean
-            [key: string]: any
-          } | null
+          info?: Json | null
           
           // Property Information
           property_street?: string
@@ -301,13 +260,7 @@ export interface Database {
           tags?: string[]
           
           // Tasks
-          tasks?: {
-            id: string
-            title: string
-            status: string
-            assigned_to: string | null
-            created_at: string
-          }[]
+          tasks?: Json | null
           
           // Marketing
           marketing_status?: string | null
@@ -322,11 +275,7 @@ export interface Database {
           assignee_id?: string | null
           
           // Notes
-          notes?: {
-            text: string
-            created_at: string
-            updated_at: string
-          }[]
+          notes?: Json | null
           
           // Metadata
           created_at?: string
@@ -595,129 +544,6 @@ export interface Database {
           phone_number_id?: string
           is_primary?: boolean
           created_at?: string
-        }
-      }
-      records: {
-        Row: {
-          id: string
-          user_id: string
-          owner_id: string | null
-          property_street: string
-          property_city: string
-          property_state: string
-          property_zip: string
-          current_status: string
-          lead_temperature: string
-          contact_attempts: number
-          do_not_contact: boolean
-          created_at: string
-          updated_at: string
-          last_contact_attempt: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          owner_id?: string | null
-          property_street: string
-          property_city: string
-          property_state: string
-          property_zip: string
-          current_status?: string
-          lead_temperature?: string
-          contact_attempts?: number
-          do_not_contact?: boolean
-          created_at?: string
-          updated_at?: string
-          last_contact_attempt?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          owner_id?: string | null
-          property_street?: string
-          property_city?: string
-          property_state?: string
-          property_zip?: string
-          current_status?: string
-          lead_temperature?: string
-          contact_attempts?: number
-          do_not_contact?: boolean
-          created_at?: string
-          updated_at?: string
-          last_contact_attempt?: string | null
-        }
-      }
-      record_attempts: {
-        Row: {
-          id: string
-          record_id: string
-          user_id: string
-          type: string
-          status: string | null
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          record_id: string
-          user_id: string
-          type: string
-          status?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          record_id?: string
-          user_id?: string
-          type?: string
-          status?: string | null
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      record_offers: {
-        Row: {
-          id: string
-          record_id: string
-          user_id: string
-          amount: number
-          agreed_amount: number | null
-          status: string
-          notes: string | null
-          offer_date: string
-          created_at: string
-          updated_at: string
-          deleted_at: string | null
-        }
-        Insert: {
-          id?: string
-          record_id: string
-          user_id: string
-          amount: number
-          agreed_amount?: number | null
-          status?: string
-          notes?: string | null
-          offer_date?: string
-          created_at?: string
-          updated_at?: string
-          deleted_at?: string | null
-        }
-        Update: {
-          id?: string
-          record_id?: string
-          user_id?: string
-          amount?: number
-          agreed_amount?: number | null
-          status?: string
-          notes?: string | null
-          offer_date?: string
-          created_at?: string
-          updated_at?: string
-          deleted_at?: string | null
         }
       }
     }

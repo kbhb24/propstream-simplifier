@@ -1,195 +1,190 @@
-
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { SecureDashboardLayout } from '@/components/layout/SecureDashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Upload, Phone, Building2, Calendar } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { DollarSign, File, Users, CheckCircle } from 'lucide-react';
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-}
+// Detect if we're in mock mode
+const isMockMode = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-interface DashboardStats {
-  totalRecords: number;
-  recordsWithPhone: number;
-  monthlyUploads: number;
-  monthlyLimit: number;
-}
-
-const DashboardOverview = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+export default function DashboardOverview() {
+  const { user, organization } = useAuth();
   const { toast } = useToast();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalRecords: 0,
-    recordsWithPhone: 0,
-    monthlyUploads: 0,
-    monthlyLimit: 25000, // Default to Basic plan limit
-  });
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [monthlyUploads, setMonthlyUploads] = useState(0);
+  const [vacantProperties, setVacantProperties] = useState(0);
+  const [newVacantProperties, setNewVacantProperties] = useState(0);
+  const [recentTasks, setRecentTasks] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!user) return;
+    if (user) {
+      fetchDashboardStats();
+      fetchRecentTasks();
+    }
+  }, [user]);
 
-      try {
-        // Get total records and records with phone numbers
-        const { data: recordsData, error: recordsError } = await supabase
+  const fetchDashboardStats = async () => {
+    try {
+      // Make sure we're using the right approach for the mock client
+      let result;
+      if (isMockMode) {
+        result = await supabase
           .from('records')
-          .select('*');
-        
-        if (recordsError) throw recordsError;
-
-        // Calculate stats
-        const totalRecords = recordsData?.length || 0;
-        const recordsWithPhone = recordsData?.filter(record => 
-          record.phone_numbers && record.phone_numbers.length > 0
-        ).length || 0;
-
-        // Get monthly upload count (mocked for now)
-        const monthlyUploads = 0;
-        const planLimit = 25000;
-
-        setStats({
-          totalRecords,
-          recordsWithPhone,
-          monthlyUploads,
-          monthlyLimit: planLimit
-        });
-
-        // Fetch sample tasks (mocked for now)
-        const sampleTasks: Task[] = [
-          { id: '1', title: 'Call property owner', description: 'Follow up with John Doe about their property' },
-          { id: '2', title: 'Send offer letter', description: 'Draft and send offer for 123 Main St.' },
-          { id: '3', title: 'Check property status', description: 'Verify if 456 Oak Ave is still vacant' }
-        ];
-        
-        setTasks(sampleTasks);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load dashboard data',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
+          .select();
+      } else {
+        result = await supabase.rpc('get_record_stats', { user_id: user.id });
       }
-    };
-
-    fetchDashboardData();
-  }, [user, toast]);
-
-  const handleUpgradePlan = () => {
-    // TODO: Implement plan upgrade flow
-    toast({
-      title: 'Coming Soon',
-      description: 'Plan upgrade functionality will be available soon.',
-    });
+      
+      if (!result) {
+        console.warn('No result from get_record_stats');
+        return;
+      }
+      
+      const { data, error } = result;
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setTotalRecords(data[0].total_records || 0);
+        setMonthlyUploads(data[0].monthly_uploads || 0);
+        setVacantProperties(data[0].vacant_properties || 0);
+        setNewVacantProperties(data[0].new_vacant_properties || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard stats.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+  // Fix the issue with tasks query
+  const fetchRecentTasks = async () => {
+    try {
+      // Make sure we're using the right approach for the mock client
+      let result;
+      if (isMockMode) {
+        result = await supabase
+          .from('tasks')
+          .select();
+    } else {
+      result = await supabase
+        .from('tasks')
+        .select()
+        .order('created_at', { ascending: false })
+        .limit(5);
+    }
+    
+    const { data, error } = result;
+    
+    if (error) throw error;
+    setRecentTasks(data || []);
+  } catch (error) {
+    console.error('Error fetching recent tasks:', error);
+    toast({
+      title: 'Error',
+      description: 'Failed to load recent tasks.',
+      variant: 'destructive',
+    });
   }
-
-  return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="space-x-4">
-          <Button onClick={() => navigate('/dashboard/records/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Record
-          </Button>
-          <Button onClick={() => navigate('/dashboard/upload')}>
-            <Upload className="mr-2 h-4 w-4" />
-            Upload Records
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Records Uploaded</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.monthlyUploads}</div>
-            <Progress value={(stats.monthlyUploads / stats.monthlyLimit) * 100} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.monthlyUploads} of {stats.monthlyLimit} records this month
-            </p>
-            <Button variant="outline" size="sm" className="mt-2" onClick={handleUpgradePlan}>
-              Upgrade Plan
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Records with Phone Numbers</CardTitle>
-            <Phone className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.recordsWithPhone}</div>
-            <p className="text-xs text-muted-foreground">
-              {((stats.recordsWithPhone / stats.totalRecords) * 100).toFixed(1)}% of total records
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Records</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRecords}</div>
-            <p className="text-xs text-muted-foreground">
-              Total records in the system
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Tasks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {tasks.length > 0 ? (
-            <div className="space-y-4">
-              {tasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">{task.title}</h3>
-                    <p className="text-sm text-muted-foreground">{task.description}</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">No recent tasks</p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
 };
 
-export default DashboardOverview;
+  return (
+    <SecureDashboardLayout>
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <File className="h-4 w-4" />
+                Total Records
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">{totalRecords}</div>
+              <p className="text-sm text-muted-foreground">
+                Total number of records in your database
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <File className="h-4 w-4" />
+                Monthly Uploads
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">{monthlyUploads}</div>
+              <p className="text-sm text-muted-foreground">
+                Number of records uploaded this month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Vacant Properties
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">{vacantProperties}</div>
+              <p className="text-sm text-muted-foreground">
+                Number of vacant properties in your database
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                New Vacant Properties
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">{newVacantProperties}</div>
+              <p className="text-sm text-muted-foreground">
+                Number of new vacant properties added this month
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Tasks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentTasks.length > 0 ? (
+              <div className="space-y-4">
+                {recentTasks.map((task: any) => (
+                  <div key={task?.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between">
+                      <h3 className="font-medium">{task?.title}</h3>
+                      <Badge>{task?.status}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">{task?.description}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                No recent tasks
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </SecureDashboardLayout>
+  );
+}
