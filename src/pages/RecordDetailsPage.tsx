@@ -5,6 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import RecordDetails from '@/components/records/RecordDetails';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/types/supabase';
+
+type Record = Database['public']['Tables']['records']['Row'];
 
 export default function RecordDetailsPage() {
   const { id } = useParams();
@@ -21,7 +24,7 @@ export default function RecordDetailsPage() {
           .from('records')
           .select('*')
           .eq('id', id)
-          .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no record is found
+          .single();
 
         if (error) throw error;
 
@@ -51,7 +54,11 @@ export default function RecordDetailsPage() {
           calls_made: data.contact_attempts || 0,
           verified_numbers_percentage: 0,
           total_investment: 0,
-          phone_numbers: Array.isArray(data.phone_numbers) ? data.phone_numbers : [],
+          phone_numbers: Array.isArray(data.phone_numbers) ? data.phone_numbers.map((phone: any) => ({
+            number: phone.number || phone,
+            type: phone.type || 'Unknown',
+            verified: phone.verified || false,
+          })) : [],
           emails: [], // We'll need to add this to the schema
           properties: [{
             id: data.id,
