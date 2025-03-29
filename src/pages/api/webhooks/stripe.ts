@@ -1,10 +1,11 @@
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 import { handleSubscriptionUpdated } from '@/lib/stripe';
 import { supabase } from '@/lib/supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-02-24.acacia',
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -105,4 +106,4 @@ export default async function handler(
     console.error('Error processing webhook:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
-} 
+}

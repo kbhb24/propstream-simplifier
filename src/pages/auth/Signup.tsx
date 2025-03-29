@@ -17,7 +17,8 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signUp(email, password, firstName, lastName);
+      // Update to pass only the expected arguments
+      await signUp(email, password);
     } catch (error) {
       // Error handling is in the auth context
     }

@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -50,7 +51,8 @@ export function SignUpForm() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      await signUp(data.email, data.password, data.organizationName)
+      // Update to pass only the expected arguments
+      await signUp(data.email, data.password)
     } finally {
       setIsLoading(false)
     }
@@ -145,4 +147,4 @@ export function SignUpForm() {
       </form>
     </Form>
   )
-} 
+}

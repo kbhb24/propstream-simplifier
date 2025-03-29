@@ -1,3 +1,4 @@
+
 // Types for Supabase database schema
 export type Json =
   | string
@@ -154,11 +155,15 @@ export interface Database {
           updated_at: string
           created_by: string | null
           updated_by: string | null
+          
+          // Additional fields
+          air_conditioner: string | null
+          last_contact_attempt: string | null
         }
         Insert: {
           id?: string
           user_id: string
-          organization_id: string
+          organization_id?: string
           
           // Owner Information
           company_name?: string | null
@@ -239,6 +244,10 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           updated_by?: string | null
+          
+          // Additional fields
+          air_conditioner?: string | null
+          last_contact_attempt?: string | null
         }
         Update: {
           id?: string
@@ -324,6 +333,10 @@ export interface Database {
           updated_at?: string
           created_by?: string | null
           updated_by?: string | null
+          
+          // Additional fields
+          air_conditioner?: string | null
+          last_contact_attempt?: string | null
         }
       }
       activity_logs: {
@@ -761,4 +774,4 @@ export type OfferStatus = Database['public']['Enums']['offer_status']
 export type TaskPriority = Database['public']['Enums']['task_priority']
 export type TaskStatus = Database['public']['Enums']['task_status']
 export type MessageType = Database['public']['Enums']['message_type']
-export type DirectMailStatus = Database['public']['Enums']['direct_mail_status'] 
+export type DirectMailStatus = Database['public']['Enums']['direct_mail_status']

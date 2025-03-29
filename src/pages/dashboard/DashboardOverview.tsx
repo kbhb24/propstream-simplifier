@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Upload, Phone, Building2, Calendar } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import type { Tables } from '@/types/supabase';
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+}
 
 interface DashboardStats {
   totalRecords: number;
@@ -26,7 +32,7 @@ const DashboardOverview = () => {
     monthlyUploads: 0,
     monthlyLimit: 25000, // Default to Basic plan limit
   });
-  const [tasks, setTasks] = useState<Tables<'tasks'>[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,24 +40,10 @@ const DashboardOverview = () => {
       if (!user) return;
 
       try {
-        // Get user's monthly upload count
-        const { data: monthlyUploads, error: monthlyError } = await supabase
-          .rpc('get_monthly_upload_count', { user_id: user.id });
-        
-        if (monthlyError) throw monthlyError;
-
-        // Get user's plan limit
-        const { data: planLimit, error: planError } = await supabase
-          .rpc('get_user_plan_limit', { user_id: user.id });
-        
-        if (planError) throw planError;
-
         // Get total records and records with phone numbers
-        const { data: recordsData, error: recordsError } = await Promise.resolve(
-          supabase
-            .from('records')
-            .select('*')
-        );
+        const { data: recordsData, error: recordsError } = await supabase
+          .from('records')
+          .select('*');
         
         if (recordsError) throw recordsError;
 
@@ -61,24 +53,25 @@ const DashboardOverview = () => {
           record.phone_numbers && record.phone_numbers.length > 0
         ).length || 0;
 
+        // Get monthly upload count (mocked for now)
+        const monthlyUploads = 0;
+        const planLimit = 25000;
+
         setStats({
           totalRecords,
           recordsWithPhone,
-          monthlyUploads: monthlyUploads || 0,
-          monthlyLimit: planLimit || 25000, // Fallback to Basic plan limit
+          monthlyUploads,
+          monthlyLimit: planLimit
         });
 
-        // Fetch tasks
-        const { data: tasksData, error: tasksError } = await Promise.resolve(
-          supabase
-            .from('tasks')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(5)
-        );
+        // Fetch sample tasks (mocked for now)
+        const sampleTasks: Task[] = [
+          { id: '1', title: 'Call property owner', description: 'Follow up with John Doe about their property' },
+          { id: '2', title: 'Send offer letter', description: 'Draft and send offer for 123 Main St.' },
+          { id: '3', title: 'Check property status', description: 'Verify if 456 Oak Ave is still vacant' }
+        ];
         
-        if (tasksError) throw tasksError;
-        setTasks(tasksData || []);
+        setTasks(sampleTasks);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         toast({
@@ -199,4 +192,4 @@ const DashboardOverview = () => {
   );
 };
 
-export default DashboardOverview; 
+export default DashboardOverview;

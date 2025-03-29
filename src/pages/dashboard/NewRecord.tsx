@@ -1,6 +1,7 @@
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import SecureDashboardLayout from '@/components/layout/SecureDashboardLayout'
+import { SecureDashboardLayout } from '@/components/layout/SecureDashboardLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -67,6 +68,7 @@ export default function NewRecord() {
 
     setLoading(true)
     try {
+      // Use a simplified query approach
       const { data, error } = await supabase
         .from('records')
         .insert({
@@ -83,7 +85,6 @@ export default function NewRecord() {
           notes: values.notes,
         })
         .select()
-        .single()
 
       if (error) throw error
 
@@ -92,7 +93,7 @@ export default function NewRecord() {
         description: 'Record created successfully',
       })
 
-      navigate(`/dashboard/records/${data.id}`)
+      navigate(`/dashboard/records/${data[0].id}`)
     } catch (error) {
       console.error('Error creating record:', error)
       toast({
@@ -307,4 +308,4 @@ export default function NewRecord() {
       </div>
     </SecureDashboardLayout>
   )
-} 
+}
